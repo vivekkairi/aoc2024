@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
 	"os"
 	"sort"
 	"strconv"
@@ -19,17 +21,16 @@ func main() {
 	rightList := []int{}
 	similarityMap := make(map[int]int)
 	for scanner.Scan() {
-		vals := strings.Split(scanner.Text(), "  ")
-		if len(vals) == 2 {
-			val, _ := strconv.ParseInt(vals[0], 10, 32)
-			leftList = append(leftList, int(val))
-			val, _ = strconv.ParseInt(strings.Trim(vals[1], " "), 10, 32)
-			rightList = append(rightList, int(val))
-			if v, ok := similarityMap[int(val)]; ok {
-				similarityMap[int(val)] = v + 1
-			} else {
-				similarityMap[int(val)] = 1
-			}
+		val1, val2, err := parseValue(scanner.Text())
+		if err != nil {
+			panic(err)
+		}
+		leftList = append(leftList, val1)
+		rightList = append(rightList, val2)
+		if v, ok := similarityMap[val2]; ok {
+			similarityMap[val2] = v + 1
+		} else {
+			similarityMap[val2] = 1
 		}
 	}
 	sort.Ints(leftList)
@@ -45,7 +46,22 @@ func main() {
 		if val, ok := similarityMap[leftList[i]]; ok {
 			similarityScore += leftList[i] * val
 		}
-
 	}
-	println(sum, similarityScore)
+	fmt.Printf("Part 1: %v\nPart 2: %v", sum, similarityScore)
+}
+
+func parseValue(s string) (int, int, error) {
+	vals := strings.Split(s, "  ")
+	if len(vals) != 2 {
+		return 0, 0, errors.New("invalid input")
+	}
+	left, err := strconv.ParseInt(vals[0], 10, 32)
+	if err != nil {
+		return 0, 0, err
+	}
+	right, err := strconv.ParseInt(strings.Trim(vals[1], " "), 10, 32)
+	if err != nil {
+		return 0, 0, err
+	}
+	return int(left), int(right), nil
 }
